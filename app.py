@@ -51,7 +51,6 @@ def load_data():
     df = df[(df['price'] > 500) & (df['price'] < 500000)]
     
     # YIL FİLTRESİ GÜNCELLENDİ: Sadece 1990 ile 2020 arasını alıyoruz
-    # (2060 gibi hatalı veriler buradan eleniyor)
     df = df[(df['year'] >= 1990) & (df['year'] <= 2020)]
     
     # KM temizliği
@@ -190,3 +189,4 @@ with tab3:
 #FOOTER
 st.markdown("---")
 st.markdown("CEN445 Project - 2025 | Github Repository: [https://github.com/berfinozturk/CEN445-Car-Analysis]")
+
