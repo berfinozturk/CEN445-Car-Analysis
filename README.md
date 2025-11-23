@@ -1,4 +1,4 @@
-# Used Car Price Analysis Dashboard 🚗
+# Used Car Price Analysis Dashboard 
 
 ##  Project Overview
 This interactive dashboard analyzes the used car market to understand price dynamics, identify trends over time, and segment vehicles based on their features. The project was developed using **Python**, **Streamlit**, and **Plotly** as part of the **CEN445 Introduction to Data Visualization** course.
