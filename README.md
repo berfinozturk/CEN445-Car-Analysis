@@ -8,7 +8,6 @@ The dashboard cleans raw data, processes outliers, filters for the relevant time
 
 Team Members & Contributions
 
-Although the dashboard interface presents a unified analysis under thematic tabs, the workload was distributed among three team members as follows:
 
 1. Ali Sait Öz
 
@@ -34,6 +33,7 @@ Sunburst Chart: Hierarchical view of Brand > Fuel > Transmission.
 
 Bar Chart: Top 10 Brands with Highest Average Price.
 
+
 2. Berfin Öztürk
 
 Role: Trend Analysis & Time-Series Visualizations
@@ -51,6 +51,7 @@ Parallel Coordinates: Multivariate analysis of Price, Year, and Odometer.
 Line Chart: Average Price Change Trend over the years.
 
 Documentation: Prepared the GitHub repository structure and README file.
+
 
 3. Arda Murat Abay
 
@@ -70,11 +71,13 @@ Box Plot: Price Distribution analyzed by Fuel Type.
 
 Reporting: Authored the final project report.
 
+
 Dataset Details
 
 Source: Kaggle "Used Car Price Prediction Dataset" (or similar UK Used Car Data).
 
 Timeframe: The analysis focuses strictly on vehicles manufactured between 1990 and 2020 to ensure data relevance.
+
 
 Key Attributes:
 
@@ -90,7 +93,8 @@ fuel: Fuel type (Petrol, Diesel, etc.).
 
 transmission: Gearbox type (Manual, Automatic, Semi-Auto).
 
-📈 Visualizations Included
+
+Visualizations Included
 
 The dashboard is organized into three analytical tabs:
 
@@ -100,11 +104,12 @@ Trend Analysis: Focuses on temporal changes and multivariate relationships.
 
 ML & Stats: Focuses on automated segmentation and statistical distributions.
 
+
 How to Run Locally
 
 Clone the repository:
 
-git clone [https://github.com/berfinozturk/CEN445-Car-Analysis.git](https://github.com/berfinozturk/CEN445-Car-Analysis.git)
+git clone (https://github.com/berfinozturk/CEN445-Car-Analysis.git)
 cd CEN445-Car-Analysis
 
 
@@ -119,8 +124,6 @@ Run the Streamlit App:
 streamlit run app.py
 
 
-Open in Browser:
-The app should automatically open at http://localhost:8501.
 
 File Structure
 
