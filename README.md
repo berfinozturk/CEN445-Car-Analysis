@@ -4,19 +4,29 @@ Project Overview
 
 This interactive dashboard analyzes the used car market to understand price dynamics, identify trends over time, and segment vehicles based on their features. The project was developed using Python, Streamlit, and Plotly as part of the CEN445 Introduction to Data Visualization course.
 
-The dashboard cleans raw data, processes outliers, and presents 9 distinct visualizations to explore relationships between price, mileage, year, and technical specifications.
+The dashboard cleans raw data, processes outliers, filters for the relevant timeframe (1990-2020), and presents 9 distinct visualizations to explore relationships between price, mileage, year, and technical specifications.
 
 Team Members & Contributions
+
+Although the dashboard interface presents a unified analysis under thematic tabs, the workload was distributed among three team members as follows:
 
 1. Ali Sait Öz
 
 Role: Project Management & Hierarchical Analysis
 
-Responsibilities:
+Key Contributions:
 
-Data Preprocessing: Implemented the load_data function to clean missing values, handle outliers (removing prices <$500 or >$500k), and standardize column names (e.g., converting 'make' to 'manufacturer').
+Data Preprocessing: Implemented the load_data function.
 
-Visualization Design (Tab 1):
+Standardized column names (e.g., converting 'make', 'brand' to 'manufacturer').
+
+Handled missing values (dropna) and data type conversions.
+
+Removed outliers (Prices <$500 or >$500k).
+
+Implemented the master year filter (1990-2020).
+
+Visualization Design (Tab 1: Hierarchical Analysis):
 
 Treemap: Market Share by Brand & Transmission.
 
@@ -28,29 +38,29 @@ Bar Chart: Top 10 Brands with Highest Average Price.
 
 Role: Trend Analysis & Time-Series Visualizations
 
-Responsibilities:
+Key Contributions:
 
-Time-Series Analysis (Tab 2): Focused on how car prices and features evolve over time (1990-2020).
+Time-Series Logic: Designed the logic to analyze how car attributes evolve over the 30-year period.
 
-Visualization Design:
+Visualization Design (Tab 2: Trend Analysis):
 
-Animated Scatter Plot: Evolution of Price vs. Odometer over the years (Interactive animation).
+Animated Scatter Plot: Evolution of Price vs. Mileage over the years (Interactive animation frame).
 
 Parallel Coordinates: Multivariate analysis of Price, Year, and Odometer.
 
 Line Chart: Average Price Change Trend over the years.
 
-Documentation: Prepared the project documentation and README file.
+Documentation: Prepared the GitHub repository structure and README file.
 
 3. Arda Murat Abay
 
 Role: Machine Learning & Statistical Analysis
 
-Responsibilities:
+Key Contributions:
 
-Advanced Analysis (Tab 3): Implemented Machine Learning models and statistical distributions.
+Advanced Analysis Logic: Implemented the K-Means algorithm and statistical groupings.
 
-Visualization Design:
+Visualization Design (Tab 3: ML & Stats):
 
 K-Means Clustering: ML algorithm to segment cars into 3 categories (Economy, Mid-range, Luxury).
 
@@ -58,19 +68,19 @@ Density Heatmap: Correlation density between Price and Odometer.
 
 Box Plot: Price Distribution analyzed by Fuel Type.
 
-Reporting: Prepared the final project report.
+Reporting: Authored the final project report.
 
 Dataset Details
 
 Source: Kaggle "Used Car Price Prediction Dataset" (or similar UK Used Car Data).
 
-Scope: The analysis focuses on vehicles manufactured between 1990 and 2020.
+Timeframe: The analysis focuses strictly on vehicles manufactured between 1990 and 2020 to ensure data relevance.
 
 Key Attributes:
 
 price: Selling price of the vehicle.
 
-year: Registration year (Filtered for 1990-2020).
+year: Registration year (Filtered for 1990-2020 range).
 
 manufacturer: Brand of the car (Standardized).
 
@@ -80,31 +90,26 @@ fuel: Fuel type (Petrol, Diesel, etc.).
 
 transmission: Gearbox type (Manual, Automatic, Semi-Auto).
 
-Visualizations Included
+📈 Visualizations Included
 
-The dashboard is divided into three analytical sections:
+The dashboard is organized into three analytical tabs:
 
-Hierarchical Analysis: Focuses on the market structure.
+Hierarchical Analysis: Focuses on the market structure and brand dominance.
 
-Treemap, Sunburst Chart, Bar Chart.
+Trend Analysis: Focuses on temporal changes and multivariate relationships.
 
-Trend Analysis: Focuses on temporal changes.
-
-Animated Scatter Plot, Parallel Coordinates, Line Chart.
-
-ML & Stats: Focuses on segmentation and distribution.
-
-K-Means Clustering (Scatter), Density Heatmap, Box Plot.
+ML & Stats: Focuses on automated segmentation and statistical distributions.
 
 How to Run Locally
 
 Clone the repository:
 
-git clone (https://github.com/berfinozturk/CEN445-Car-Analysis.git)
+git clone [https://github.com/berfinozturk/CEN445-Car-Analysis.git](https://github.com/berfinozturk/CEN445-Car-Analysis.git)
 cd CEN445-Car-Analysis
 
 
 Install required libraries:
+Ensure you have Python installed, then run:
 
 pip install -r requirements.txt
 
@@ -123,6 +128,6 @@ app.py: Main application code containing all visualizations and logic.
 
 vehicles.csv: Cleaned dataset used for analysis.
 
-requirements.txt: List of Python dependencies.
+requirements.txt: List of Python dependencies (streamlit, pandas, plotly, scikit-learn).
 
-README.md: Project documentation.
+README.md: Project documentation and contribution details.
