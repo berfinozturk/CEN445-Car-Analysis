@@ -137,7 +137,7 @@ with tab2:
                                            color="price", title="Multivariate Analysis (First 500 Cars)")
     st.plotly_chart(fig_parallel, use_container_width=True)
 
-    st.subheader("6. Average Price Trend (Line Chart)")
+    st.subheader("6. Average Price Trend")
     yearly_trend = filtered_df.groupby('year')['price'].mean().reset_index()
     fig_line = px.line(yearly_trend, x='year', y='price', title="Average Price Change Over Years")
     st.plotly_chart(fig_line, use_container_width=True)
@@ -189,4 +189,5 @@ with tab3:
 #FOOTER
 st.markdown("---")
 st.markdown("CEN445 Project - 2025 | Github Repository: [https://github.com/berfinozturk/CEN445-Car-Analysis]")
+
 
