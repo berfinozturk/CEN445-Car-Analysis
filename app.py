@@ -183,44 +183,70 @@ with tab1:
     
     # SUNUM YORUMU: "Bu çubuk grafik, portföyümüzdeki en yüksek ortalama fiyata sahip 10 markayı/modeli gösterir. Bu bilgi, kârlılık stratejilerimizi yönlendirmek için temel veridir."
 
-# -----------------------------------------------------------------------------
-
-# TAB 2 ve TAB 3 (Kodda İçerikleri Boş, ama Başlıkları Mevcut)
-# Bu sekmeler şu anda sadece isimlendirilmiştir. (Sizin kodunuzda sadece başlıkları var.)
-with tab2:
-    st.header("Trend Analysis (Missing Content)")
-    st.markdown("Placeholder for Time Series and Odometer/Price trends.")
-    
-with tab3:
-    st.header("ML & Stats (Missing Content)")
-    st.markdown("Placeholder for K-Means Clustering and other statistical summaries.")
-
-# -----------------------------------------------------------------------------
-
-# TAB 2: TREND ANALİZİ
-
+# TAB 2
 with tab2:
     st.header("Trend and Time Series Analysis")
-    
     st.subheader("4. Price vs Mileage Evolution over Time")
-    st.caption("Press the Play button to watch the evolution over the years.")
+    st.caption("Now both 'All Dots' and 'All Legends' work simultaneously.")
     
     anim_df = filtered_df.sort_values('year')
-    fig_anim = px.scatter(anim_df, x="odometer", y="price", animation_frame="year", 
-                          color="manufacturer", size_max=60, range_x=[0,300000], range_y=[0,100000],
-                          title="Evolution of Price vs Mileage Over Years")
-    st.plotly_chart(fig_anim, use_container_width=True)
     
-    st.subheader("5. Parallel Coordinates Plot")
-    st.caption("Multidimensional relationship between Price, Year, and Odometer.")
-    fig_parallel = px.parallel_coordinates(filtered_df.head(500), dimensions=['price', 'year', 'odometer'],
-                                           color="price", title="Multivariate Analysis (First 500 Cars)")
-    st.plotly_chart(fig_parallel, use_container_width=True)
+    if not anim_df.empty:
+        years = list(range(int(anim_df['year'].min()), int(anim_df['year'].max()) + 1))
+        target_brands = selected_brands if selected_brands else anim_df['manufacturer'].unique()
+        
+        skeleton = pd.DataFrame(list(itertools.product(years, target_brands)), columns=['year', 'manufacturer'])
+        skeleton['unique_id'] = "dummy_" + skeleton['year'].astype(str) + "_" + skeleton['manufacturer']
+        
+        final_anim_df = pd.concat([anim_df, skeleton], ignore_index=True)
+        final_anim_df = final_anim_df.sort_values(['year', 'manufacturer'])
+        
+        brands_order = sorted(target_brands)
 
-    st.subheader("6. Average Price Trend")
-    yearly_trend = filtered_df.groupby('year')['price'].mean().reset_index()
-    fig_line = px.line(yearly_trend, x='year', y='price', title="Average Price Change Over Years")
-    st.plotly_chart(fig_line, use_container_width=True)
+        fig_anim = px.scatter(
+            final_anim_df, 
+            x="odometer", 
+            y="price", 
+            animation_frame="year", 
+            animation_group="unique_id", 
+            color="manufacturer", 
+            opacity=0.6,
+            size_max=40, 
+            range_x=[0, 350000], 
+            range_y=[0, 150000],
+            category_orders={"manufacturer": brands_order},
+            title="Evolution of Price vs Mileage Over Years",
+            hover_data=['manufacturer', 'price', 'odometer']
+        )
+        
+        st.plotly_chart(fig_anim, theme="streamlit")
+        
+    else:
+        st.warning("No data available for animation.")
+
+    st.subheader("5. Parallel Coordinates Plot")
+    fig_parallel = px.parallel_coordinates(filtered_df.head(500), dimensions=['price', 'year', 'odometer'],
+                                             color="price", title="Multivariate Analysis (First 500 Cars)")
+    
+    # Margin ayarı (Sol ve Üst boşluk)
+    fig_parallel.update_layout(margin=dict(l=60, r=20, t=100, b=20))
+    
+    st.plotly_chart(fig_parallel, theme="streamlit")
+
+st.subheader("6. Average Price Trend")
+    
+    # Hata veren satırın düzeltilmiş hali (st.subheader ile aynı hizada olmalı):
+brand_trend = filtered_df.groupby(['year', 'manufacturer'])['price'].mean().reset_index()
+    
+fig_line = px.line(
+        brand_trend, 
+        x='year', 
+        y='price', 
+        color='manufacturer', # Markalara göre ayır
+        title="Average Price Change Over Years (By Brand)"
+    )
+    
+st.plotly_chart(fig_line, theme="streamlit")
 
 
 # TAB 3: ML & İSTATİSTİK
@@ -269,6 +295,7 @@ with tab3:
 #FOOTER
 st.markdown("---")
 st.markdown("CEN445 Project - 2025 | Github Repository: [https://github.com/berfinozturk/CEN445-Car-Analysis]")
+
 
 
 
