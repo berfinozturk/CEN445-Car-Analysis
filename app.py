@@ -72,14 +72,25 @@ st.sidebar.header("Dashboard Filters")
 year_range = st.sidebar.slider("Select Year Range", 1990, 2020, (2010, 2020))
 
 all_brands = sorted(df['manufacturer'].unique())
-selected_brands = st.sidebar.multiselect("Select Brands", all_brands, default=all_brands[:5])
+popular_brands = df['manufacturer'].value_counts().head(5).index.tolist()
 
-# Filtreleme
-if selected_brands:
-    filtered_df = df[(df['year'].between(*year_range)) & (df['manufacturer'].isin(selected_brands))]
-else:
-    filtered_df = df[df['year'].between(*year_range)]
+# Select buttons for brands
+col1, col2, col3 = st.sidebar.columns([2, 1, 1])
+with col1:
+    selected_brands = st.sidebar.multiselect("Select Brands", all_brands, default=popular_brands)
+with col2:
+    if st.sidebar.button("Popular 5", help="Select top 5 popular brands"):
+        st.session_state.selected_brands = popular_brands
+        st.rerun()
+with col3:
+    if st.sidebar.button("All", help="Select all brands"):
+        st.session_state.selected_brands = all_brands
+        st.rerun()
 
+# Update selected_brands from session state if button was clicked
+if 'selected_brands' in st.session_state:
+    selected_brands = st.session_state.selected_brands
+    del st.session_state.selected_brands
 #  BAŞLIK VE GİRİŞ 
 st.title("🚗 Used Car Price Analysis Dashboard")
 st.markdown("""
@@ -189,6 +200,7 @@ with tab3:
 #FOOTER
 st.markdown("---")
 st.markdown("CEN445 Project - 2025 | Github Repository: [https://github.com/berfinozturk/CEN445-Car-Analysis]")
+
 
 
 
