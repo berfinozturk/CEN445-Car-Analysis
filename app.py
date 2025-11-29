@@ -220,4 +220,5 @@ with tab3:
         st.plotly_chart(fig_box, theme="streamlit")
 
 st.markdown("---")
-st.markdown("CEN445 Project - 2025")
+st.markdown("CEN445 Project --- https://github.com/berfinozturk/CEN445-Car-Analysis")
+
