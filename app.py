@@ -65,39 +65,38 @@ year_range = st.sidebar.slider("Select Year Range", 1990, 2020, (2010, 2020))
 all_brands = sorted(df['manufacturer'].unique())
 popular_brands = df['manufacturer'].value_counts().head(5).index.tolist()
 
-col1, col2, col3 = st.sidebar.columns([2, 1, 1])
-
+# Session State kontrolü (İlk açılışta Popüler 5 seçili gelsin)
 if 'selected_brands_state' not in st.session_state:
     st.session_state.selected_brands_state = popular_brands
 
-with col2:
-    if st.sidebar.button("Pop 5"):
+# 1. ÖNCE SEÇİM KUTUSU (MULTISELECT) YERLEŞTİRİLİYOR
+selected_brands = st.sidebar.multiselect(
+    "Select Brands", 
+    all_brands, 
+    default=st.session_state.selected_brands_state
+)
+
+# 2. BUTONLAR SEÇİM KUTUSUNUN ALTINA YERLEŞTİRİLİYOR
+col_btn1, col_btn2 = st.sidebar.columns(2)
+
+with col_btn1:
+    # "Pop 5" ismi "Top 5" olarak değiştirildi
+    if st.button("Top 5", use_container_width=True):
         st.session_state.selected_brands_state = popular_brands
         st.rerun()
         
-with col3:
-    if st.sidebar.button("All"):
+with col_btn2:
+    if st.button("All", use_container_width=True):
         st.session_state.selected_brands_state = all_brands
         st.rerun()
 
-with col1:
-    selected_brands = st.sidebar.multiselect(
-        "Select Brands", 
-        all_brands, 
-        default=st.session_state.selected_brands_state
-    )
-
+# Filtreleme Mantığı
 if selected_brands:
     filtered_df = df[(df['year'].between(*year_range)) & (df['manufacturer'].isin(selected_brands))]
 else:
+    # Eğer kullanıcı hepsini çarpılayıp silerse, varsayılan olarak hepsi mi gelsin yoksa hiçbiri mi?
+    # Genelde hiçbiri seçili değilse hepsi gösterilir mantığı yaygındır:
     filtered_df = df[df['year'].between(*year_range)]
-
-# -----------------------------------------------------------------------------
-# BAŞLIK
-# -----------------------------------------------------------------------------
-st.title("🚗 Used Car Price Analysis Dashboard")
-st.info(f"Number of Records Displayed: {len(filtered_df)} (Filtered)")
-
 # -----------------------------------------------------------------------------
 # SEKMELER
 # -----------------------------------------------------------------------------
@@ -221,3 +220,4 @@ with tab3:
 
 st.markdown("---")
 st.markdown("CEN445 Project --- https://github.com/berfinozturk/CEN445-Car-Analysis")
+
