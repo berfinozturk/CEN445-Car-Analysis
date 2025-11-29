@@ -152,8 +152,8 @@ with tab2:
             color="manufacturer", 
             opacity=0.6,
             size_max=40, 
-            range_x=[0, 350000], 
-            range_y=[0, 150000],
+            range_x=[0, 150000], 
+            range_y=[0, 75000],
             category_orders={"manufacturer": brands_order},
             title="Evolution of Price vs Mileage Over Years",
             hover_data=['manufacturer', 'price', 'odometer']
@@ -220,4 +220,5 @@ with tab3:
 
 st.markdown("---")
 st.markdown("CEN445 Project --- https://github.com/berfinozturk/CEN445-Car-Analysis")
+
 
