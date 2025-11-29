@@ -1,20 +1,33 @@
-import streamlit as st  
-import pandas as pd  
-import plotly.express as px  
-from sklearn.cluster import KMeans  
+# Gerekli kütüphaneleri içe aktarıyoruz.
+import streamlit as st # Web uygulamasını oluşturmak için ana kütüphane.
+import pandas as pd # Veri manipülasyonu ve analizi için (DataFrames).
+import plotly.express as px # Etkileşimli ve güzel görünümlü grafikler oluşturmak için.
+from sklearn.cluster import KMeans # Makine öğrenimi bölümü için kümeleme algoritması.
 
-#  SAYFA AYARLARI 
-st.set_page_config(page_title="Used Car Analysis", layout="wide")
+# -----------------------------------------------------------------------------
+
+# SAYFA AYARLARI
+# st.set_page_config() fonksiyonu, tarayıcı sekmesinin başlığını ve sayfa düzenini ayarlar.
+st.set_page_config(page_title="Used Car Analysis", layout="wide") 
+
+# SUNUM YORUMU: "Projemiz, kullanıcı deneyimini optimize etmek için sayfayı geniş (wide) düzende ayarlayarak görsellerin daha ferah görünmesini sağladık."
+
+# -----------------------------------------------------------------------------
 
 # 1. VERİ YÜKLEME VE ÖN İŞLEME
+# @st.cache_data dekoratörü, veriyi sadece bir kez yüklemeyi ve ön işlemeyi garanti eder.
+# Bu, uygulamanın performansını artırır ve kullanıcı filtre değiştirse bile verinin tekrar tekrar okunmasını engeller.
 @st.cache_data
 def load_data():
+    # Veri setini yüklüyoruz.
     df = pd.read_csv("vehicles.csv")
     
-    # Sütun isimlerini düzenle
+    # Sütun isimlerini düzenle: Hepsi küçük harfe çevrilir ve baştaki/sondaki boşluklar temizlenir.
     df.columns = df.columns.str.lower().str.strip()
     
-    # Sütun eşleştirme (Renaming)
+    # SUNUM YORUMU: "Farklı veri setlerinden kaynaklanabilecek tutarsızlıkları gidermek için, veri kalitesini artırma adına sütun adlarını standartlaştırdık."
+    
+    # Sütun eşleştirme (Renaming): Farklı veri setlerindeki muhtemel farklı isimleri standart hale getiriyoruz.
     renames = {
         'make': 'manufacturer',
         'brand': 'manufacturer',
@@ -28,105 +41,161 @@ def load_data():
     }
     df = df.rename(columns=renames)
     
+    # Eğer "manufacturer" sütunu hala yoksa, ilk metin sütununu 'manufacturer' olarak adlandırır. (Bu bir yedek çözümdür.)
     if 'manufacturer' not in df.columns:
         text_cols = df.select_dtypes(include=['object']).columns
         if len(text_cols) > 0:
             df = df.rename(columns={text_cols[0]: 'manufacturer'})
 
-    # Eksik verileri temizle
+    # Eksik verileri temizle: Şimdilik tüm satırlarda eksik değer içerenleri çıkarıyoruz.
     df = df.dropna()
     
-    # Veri tiplerini düzelt
+    # SUNUM YORUMU: "Analizimizin doğruluğu için eksik değer içeren tüm satırları temizledik."
+    
+    # Veri tiplerini düzelt: Özellikle fiyat (price) sütununda temizlik yapılması gerekiyor.
     if 'price' in df.columns and df['price'].dtype == 'object':
+        # '$' ve ',' gibi sayısal olmayan karakterleri temizliyoruz.
         df['price'] = df['price'].astype(str).str.replace(r'[$,]', '', regex=True)
         
+    # İlgili sütunları sayısal (numeric) veri tipine dönüştürüyoruz. Hata veren değerler NaN olur (coerce).
     df['price'] = pd.to_numeric(df['price'], errors='coerce')
     df['year'] = pd.to_numeric(df['year'], errors='coerce')
     df['odometer'] = pd.to_numeric(df['odometer'], errors='coerce')
     
+    # Sayısala çevirme sonrası oluşan NaN (boş) değerleri temizliyoruz.
     df = df.dropna(subset=['price', 'year', 'odometer'])
 
-    #  AYKIRI DEĞER TEMİZLİĞİ (GÜNCELLENDİ) 
-    # Fiyat temizliği
+    # AYKIRI DEĞER TEMİZLİĞİ (OUTLIER REMOVAL)
+    # SUNUM YORUMU: "Veri setindeki olası hataları ve aykırı değerleri temizleyerek analizlerimizin gerçekçi olmasını sağladık."
+    
+    # Fiyat temizliği: Çok ucuz veya çok pahalı olan araçları çıkarıyoruz (realistik aralık).
     df = df[(df['price'] > 500) & (df['price'] < 500000)]
     
-    # YIL FİLTRESİ GÜNCELLENDİ: Sadece 1990 ile 2020 arasını alıyoruz
+    # YIL FİLTRESİ: Analizi anlamlı bir aralığa (1990-2020) indiriyoruz.
     df = df[(df['year'] >= 1990) & (df['year'] <= 2020)]
     
-    # KM temizliği
+    # KM temizliği: Çok yüksek kilometreye sahip araçları çıkarıyoruz (örn. 500.000 km üstü).
     df = df[df['odometer'] < 500000]
     
     return df
 
+# Veri yükleme işlemini try-except bloğu ile güvenli hale getiriyoruz.
 try:
     df = load_data()
 except Exception as e:
+    # Hata durumunda Streamlit'e hata mesajı gösterip uygulamayı durdurur.
     st.error(f"Error loading data: {e}")
     st.stop()
+
+# -----------------------------------------------------------------------------
 
 # SIDEBAR (FİLTRELER)
 st.sidebar.header("Dashboard Filters")
 
-# GÜNCELLENDİ: Slider'ı 1990 ve 2020'ye sabitledik
-# Kullanıcı bu aralıkta seçim yapabilir. Varsayılan: 2010-2020
+# Yıl Aralığı Slider'ı: Kullanıcının filtreleme yapmasını sağlar.
+# Varsayılan değer olarak 2010 ve 2020 arası seçili gelir.
 year_range = st.sidebar.slider("Select Year Range", 1990, 2020, (2010, 2020))
 
+# Marka seçimi için tüm markaların ve en popüler 5 markanın listesini hazırlıyoruz.
 all_brands = sorted(df['manufacturer'].unique())
 popular_brands = df['manufacturer'].value_counts().head(5).index.tolist()
 
-# Select buttons for brands
+# Marka seçimi Multiselect widget'ı
 col1, col2, col3 = st.sidebar.columns([2, 1, 1])
 with col1:
+    # Varsayılan olarak en popüler 5 marka seçili gelir.
     selected_brands = st.sidebar.multiselect("Select Brands", all_brands, default=popular_brands)
 with col2:
+    # "Popular 5" butonu ile ilk 5 markayı seçme kolaylığı sunulur.
     if st.sidebar.button("Popular 5", help="Select top 5 popular brands"):
-        st.session_state.selected_brands = popular_brands
-        st.rerun()
+        st.session_state.selected_brands = popular_brands # Seçimi session state'e kaydedip
+        st.rerun() # Sayfayı yeniden yükleriz (rerun).
 with col3:
+    # "All" butonu ile tüm markaları seçme kolaylığı sunulur.
     if st.sidebar.button("All", help="Select all brands"):
         st.session_state.selected_brands = all_brands
-        st.rerun()
+        st.rerun()# Update selected_brands from session state if button was clicked
 
-# Update selected_brands from session state if button was clicked
+# Butona tıklandığında session state'ten seçimi alıp state'i temizler.
 if 'selected_brands' in st.session_state:
     selected_brands = st.session_state.selected_brands
     del st.session_state.selected_brands
-#  BAŞLIK VE GİRİŞ 
+
+# Filtreleme: Seçilen yıl aralığı ve markalara göre ana veri setini filtreleriz.
+if selected_brands:
+    filtered_df = df[(df['year'].between(*year_range)) & (df['manufacturer'].isin(selected_brands))]
+else:
+    # Marka seçilmezse sadece yıl aralığına göre filtreleme yapılır.
+    filtered_df = df[df['year'].between(*year_range)]
+
+# -----------------------------------------------------------------------------
+
+# BAŞLIK VE GİRİŞ
 st.title("🚗 Used Car Price Analysis Dashboard")
 st.markdown("""
 This project is designed to analyze price dynamics in the used car market. 
 The dataset has been cleaned and presented with interactive visualizations.
 """)
+# Filtreleme sonrası kaç kaydın gösterildiğini bilgi kutusunda gösterir.
 st.info(f"Number of Records Displayed: {len(filtered_df)} (Filtered)")
 
+# SUNUM YORUMU: "Filtreleme mekanizması sayesinde, gösterge tablosunun dinamik olarak çalıştığını ve anlık kayıt sayısını görebilirsiniz."
+
+# -----------------------------------------------------------------------------
+
 # SEKMELER (TABS)
+# Analizleri farklı kategorilerde gruplandırmak için sekmeler oluşturuyoruz.
 tab1, tab2, tab3 = st.tabs(["Hierarchical Analysis", "Trend Analysis", "ML & Stats"])
 
+# -----------------------------------------------------------------------------
 
-# TAB 1: KATEGORİK VE HİYERARŞİK
-
+# TAB 1: KATEGORİK VE HİYERARŞİK ANALİZ
 with tab1:
     st.header("Categorical and Hierarchical Analysis")
     
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns(2) # İlk iki grafiği yan yana yerleştirmek için sütunlar oluşturuyoruz.
     
     with col1:
         st.subheader("1. Market Share by Brand & Transmission")
+        # Treemap (Ağaç Haritası): Marka ve vites tipine göre pazar payını (fiyata göre) gösterir.
         fig_treemap = px.treemap(filtered_df, path=['manufacturer', 'transmission'], values='price', color='price',
                                  color_continuous_scale='RdBu', title="Market Share by Brand and Transmission")
         st.plotly_chart(fig_treemap, use_container_width=True)
         
+        # SUNUM YORUMU: "Treemap, hangi markanın/modelin toplam fiyat hacminde ne kadar yer kapladığını ve bu payın manuel/otomatik vites arasında nasıl bölündüğünü görselleştirir. Renk, aracın ortalama fiyatını gösterir."
+
     with col2:
         st.subheader("2. Hierarchy: Brand > Fuel > Transmission")
+        # Sunburst (Güneş Işını Grafiği): Marka, yakıt ve vitesin iç içe hiyerarşisini gösterir.
+        # Büyük veri setleri için performansı korumak adına ilk 5000 kayıtla sınırlanmıştır.
         fig_sunburst = px.sunburst(filtered_df.head(5000), path=['manufacturer', 'fuel', 'transmission'], 
-                                   title="Distribution of Brand - Fuel - Transmission")
+                                     title="Distribution of Brand - Fuel - Transmission")
         st.plotly_chart(fig_sunburst, use_container_width=True)
+        
+        # SUNUM YORUMU: "Sunburst grafiği ile, belirli bir markanın önce hangi yakıt tipine, ardından hangi vites tipine ayrıldığını hiyerarşik olarak inceliyoruz. Bu, pazar segmentasyonunu anlamak için kritik öneme sahiptir."
 
     st.subheader("3. Average Price by Brand")
+    # Markalara göre ortalama fiyatları hesaplar ve en yüksek 10'u alır.
     top_expensive = filtered_df.groupby('manufacturer')['price'].mean().sort_values(ascending=False).head(10).reset_index()
+    # Yatay çubuk grafik ile en pahalı 10 markayı görselleştiririz.
     fig_bar = px.bar(top_expensive, x='price', y='manufacturer', orientation='h', title="Top 10 Brands with Highest Average Price")
     st.plotly_chart(fig_bar, use_container_width=True)
+    
+    # SUNUM YORUMU: "Bu çubuk grafik, portföyümüzdeki en yüksek ortalama fiyata sahip 10 markayı/modeli gösterir. Bu bilgi, kârlılık stratejilerimizi yönlendirmek için temel veridir."
 
+# -----------------------------------------------------------------------------
+
+# TAB 2 ve TAB 3 (Kodda İçerikleri Boş, ama Başlıkları Mevcut)
+# Bu sekmeler şu anda sadece isimlendirilmiştir. (Sizin kodunuzda sadece başlıkları var.)
+with tab2:
+    st.header("Trend Analysis (Missing Content)")
+    st.markdown("Placeholder for Time Series and Odometer/Price trends.")
+    
+with tab3:
+    st.header("ML & Stats (Missing Content)")
+    st.markdown("Placeholder for K-Means Clustering and other statistical summaries.")
+
+# -----------------------------------------------------------------------------
 
 # TAB 2: TREND ANALİZİ
 
@@ -200,6 +269,7 @@ with tab3:
 #FOOTER
 st.markdown("---")
 st.markdown("CEN445 Project - 2025 | Github Repository: [https://github.com/berfinozturk/CEN445-Car-Analysis]")
+
 
 
 
