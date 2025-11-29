@@ -221,4 +221,3 @@ with tab3:
 
 st.markdown("---")
 st.markdown("CEN445 Project --- https://github.com/berfinozturk/CEN445-Car-Analysis")
-
