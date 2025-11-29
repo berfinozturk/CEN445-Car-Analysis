@@ -168,7 +168,7 @@ with tab3:
         
         fig_cluster = px.scatter(ml_df, x='odometer', y='price', color='cluster', 
                                  title="Car Segmentation (Clustering Analysis)",
-                                 labels={'cluster': 'Segment'})
+                                 labels={'cluster': 'Segment'}, color_discrete_map={"Economy": "blue", "Mid-range": "green", "Luxury": "red"})
         st.plotly_chart(fig_cluster, use_container_width=True)
     else:
         st.warning("Not enough data for clustering.")
@@ -189,5 +189,8 @@ with tab3:
 #FOOTER
 st.markdown("---")
 st.markdown("CEN445 Project - 2025 | Github Repository: [https://github.com/berfinozturk/CEN445-Car-Analysis]")
+
+
+
 
 
