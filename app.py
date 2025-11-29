@@ -183,7 +183,6 @@ with tab1:
     
     # SUNUM YORUMU: "Bu çubuk grafik, portföyümüzdeki en yüksek ortalama fiyata sahip 10 markayı/modeli gösterir. Bu bilgi, kârlılık stratejilerimizi yönlendirmek için temel veridir."
 
-# TAB 2
 with tab2:
     st.header("Trend and Time Series Analysis")
     st.subheader("4. Price vs Mileage Evolution over Time")
@@ -233,21 +232,20 @@ with tab2:
     
     st.plotly_chart(fig_parallel, theme="streamlit")
 
-st.subheader("6. Average Price Trend")
+    # DÜZELTİLEN KISIM: Burası artık TAB 2'nin girintisi (indentation) içinde!
+    st.subheader("6. Average Price Trend")
     
-    # Hata veren satırın düzeltilmiş hali (st.subheader ile aynı hizada olmalı):
-brand_trend = filtered_df.groupby(['year', 'manufacturer'])['price'].mean().reset_index()
+    brand_trend = filtered_df.groupby(['year', 'manufacturer'])['price'].mean().reset_index()
     
-fig_line = px.line(
+    fig_line = px.line(
         brand_trend, 
         x='year', 
         y='price', 
-        color='manufacturer', # Markalara göre ayır
+        color='manufacturer', 
         title="Average Price Change Over Years (By Brand)"
     )
     
-st.plotly_chart(fig_line, theme="streamlit")
-
+    st.plotly_chart(fig_line, theme="streamlit")
 
 # TAB 3: ML & İSTATİSTİK
 
@@ -295,6 +293,7 @@ with tab3:
 #FOOTER
 st.markdown("---")
 st.markdown("CEN445 Project - 2025 | Github Repository: [https://github.com/berfinozturk/CEN445-Car-Analysis]")
+
 
 
 
