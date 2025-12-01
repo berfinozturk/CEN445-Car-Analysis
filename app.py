@@ -134,9 +134,8 @@ with tab2:
         years = list(range(int(anim_df['year'].min()), int(anim_df['year'].max()) + 1))
         target_brands = selected_brands if selected_brands else anim_df['manufacturer'].unique()
         
-        # itertools hatası vermemesi için yukarıda import edildi
-        skeleton = pd.DataFrame(list(itertools.product(years, target_brands)), columns=['year', 'manufacturer'])
-        skeleton['unique_id'] = "dummy_" + skeleton['year'].astype(str) + "_" + skeleton['manufacturer']
+        skeleton = pd.DataFrame(list(itertools.product(years, target_brands)), columns=['year', 'manufacturer']) #veride o yıl o araçtan hiç satılmamış olsa bile, oraya boş bir yer tutucu (placeholder) koyuyor.
+        skeleton['unique_id'] = "dummy_" + skeleton['year'].astype(str) + "_" + skeleton['manufacturer'] #skeleton dataframe oluşturduk.
         
         final_anim_df = pd.concat([anim_df, skeleton], ignore_index=True)
         final_anim_df = final_anim_df.sort_values(['year', 'manufacturer'])
@@ -220,5 +219,6 @@ with tab3:
 
 st.markdown("---")
 st.markdown("CEN445 Project --- https://github.com/berfinozturk/CEN445-Car-Analysis")
+
 
 
