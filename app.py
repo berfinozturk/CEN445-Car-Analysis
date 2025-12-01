@@ -4,14 +4,11 @@ import plotly.express as px
 from sklearn.cluster import KMeans
 import itertools  # BU SATIR EKSİKTİ, ŞİMDİ EKLENDİ.
 
-# -----------------------------------------------------------------------------
 # SAYFA AYARLARI
-# -----------------------------------------------------------------------------
 st.set_page_config(page_title="Used Car Analysis", layout="wide")
 
-# -----------------------------------------------------------------------------
 # 1. VERİ YÜKLEME VE ÖN İŞLEME
-# -----------------------------------------------------------------------------
+
 @st.cache_data
 def load_data():
     try:
@@ -56,9 +53,8 @@ def load_data():
 
 df = load_data()
 
-# -----------------------------------------------------------------------------
 # SIDEBAR (FİLTRELER)
-# -----------------------------------------------------------------------------
+
 st.sidebar.header("Dashboard Filters")
 year_range = st.sidebar.slider("Select Year Range", 1990, 2020, (2010, 2020))
 
@@ -94,12 +90,11 @@ with col_btn2:
 if selected_brands:
     filtered_df = df[(df['year'].between(*year_range)) & (df['manufacturer'].isin(selected_brands))]
 else:
-    # Eğer kullanıcı hepsini çarpılayıp silerse, varsayılan olarak hepsi mi gelsin yoksa hiçbiri mi?
-    # Genelde hiçbiri seçili değilse hepsi gösterilir mantığı yaygındır:
+    
     filtered_df = df[df['year'].between(*year_range)]
-# -----------------------------------------------------------------------------
+
 # SEKMELER
-# -----------------------------------------------------------------------------
+
 tab1, tab2, tab3 = st.tabs(["Hierarchical Analysis", "Trend Analysis", "ML & Stats"])
 
 # TAB 1
@@ -188,37 +183,75 @@ with tab2:
     st.plotly_chart(fig_line, theme="streamlit")
 
 # TAB 3
+
+from sklearn.preprocessing import StandardScaler # Ölçeklendirme için gerekli kütüphane
+
 with tab3:
-    st.header("Statistical Analysis and ML")
-    st.subheader("7. K-Means Clustering")
+    st.header("Statistical Analysis and ML - Arda Murat Abay")
     
-    ml_df = filtered_df[['price', 'odometer']].dropna()
-    if len(ml_df) > 10:
-        kmeans = KMeans(n_clusters=3, random_state=0, n_init=10)
-        ml_df['cluster'] = kmeans.fit_predict(ml_df)
-        ml_df['cluster'] = ml_df['cluster'].astype(str)
-        cluster_means = ml_df.groupby('cluster')['price'].mean().sort_values()
-        map_dict = {cluster_means.index[0]: 'Economy', cluster_means.index[1]: 'Mid-range', cluster_means.index[2]: 'Luxury'}
-        ml_df['segment'] = ml_df['cluster'].map(map_dict)
+    st.subheader("7. K-Means Clustering (ML Segmentation)")
+    st.write("We segment cars into 3 categories (Economy, Mid-range, Luxury) using Scaled Data for better accuracy.")
+    
+    # 1. Veriyi hazırla
+    ml_df = filtered_df[['price', 'odometer', 'manufacturer', 'year']].dropna().copy()
+    
+    if len(ml_df) > 0:
+       
+        # Fiyat ve Kilometreyi eşit şartlara getiriyoruz ki biri diğerini ezmesin.
+        scaler = StandardScaler()
         
-        fig_cluster = px.scatter(ml_df, x='odometer', y='price', color='segment', 
-                                 color_discrete_map={"Economy": "blue", "Mid-range": "green", "Luxury": "red"})
-        st.plotly_chart(fig_cluster, theme="streamlit")
+        # Ölçeklenmiş veriyi hesapla (Sadece yapay zeka için kullanacağız)
+        scaled_features = scaler.fit_transform(ml_df[['price', 'odometer']])
+        
+        # 2. Modeli çalıştır (Artık ölçeklenmiş veriyi kullanıyoruz)
+        kmeans = KMeans(n_clusters=3, random_state=0, n_init=10)
+        ml_df['cluster_id'] = kmeans.fit_predict(scaled_features)
+        
+        # 3. İsimlendirme (Mantık aynı: Fiyat ortalamasına göre isim ver)
+        cluster_means = ml_df.groupby('cluster_id')['price'].mean().sort_values()
+        mapping = {
+            cluster_means.index[0]: 'Economy',
+            cluster_means.index[1]: 'Mid-range',
+            cluster_means.index[2]: 'Luxury'
+        }
+        ml_df['Segment'] = ml_df['cluster_id'].map(mapping)
+        
+        # 4. Grafiği Çiz
+        fig_cluster = px.scatter(ml_df, x='odometer', y='price', 
+                                 color='Segment', 
+                                 title="Car Segmentation (Scaled Clustering)",
+                                 hover_data=['manufacturer', 'year'], 
+                                 category_orders={"Segment": ["Economy", "Mid-range", "Luxury"]},
+                                 color_discrete_map={"Economy": "blue", "Mid-range": "orange", "Luxury": "red"}
+                                 ) 
+        
+       
+        st.plotly_chart(fig_cluster, use_container_width=True)
+        
+    
     else:
-        st.warning("Not enough data.")
+        st.warning("Not enough data for clustering.")
 
     col3, col4 = st.columns(2)
+    
     with col3:
-        st.subheader("8. Price vs Odometer Density")
-        fig_heatmap = px.density_heatmap(filtered_df, x="odometer", y="price", nbinsx=20, nbinsy=20)
-        st.plotly_chart(fig_heatmap, theme="streamlit")
+        st.subheader("8. Price vs Odometer Density (Heatmap)")
+        fig_heatmap = px.density_heatmap(filtered_df, x="odometer", y="price", nbinsx=20, nbinsy=20, 
+                                         title="Density Heatmap")
+        fig_heatmap.update_layout(xaxis_title=None)
+        st.plotly_chart(fig_heatmap, use_container_width=True)
+        
     with col4:
         st.subheader("9. Price Distribution by Fuel Type")
-        fig_box = px.box(filtered_df, x="fuel", y="price", color="fuel")
-        st.plotly_chart(fig_box, theme="streamlit")
-
+        fig_box = px.box(filtered_df, x="fuel", y="price", color="fuel", 
+                         title="Price Distribution",
+                         hover_data=['manufacturer', 'year']) 
+     
+        st.plotly_chart(fig_box, use_container_width=True)
 st.markdown("---")
 st.markdown("CEN445 Project --- https://github.com/berfinozturk/CEN445-Car-Analysis")
+
+
 
 
 
